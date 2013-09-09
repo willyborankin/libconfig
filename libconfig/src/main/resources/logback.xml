@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<configuration debug="true">
+
+	<property name="CONSOLE_PATTERN" value="%d %-10level [%thread] [%logger] - %msg%n" />
+	<property name="FILE_PATTERN" value="%d %-5relative %-5level [%thread] %logger{35} - %msg%n" />
+	<property name="LOG_PATH" value="${catalina.home}/logs" />
+	<property name="PROJECT_LOG_PREFIX" value="test" />
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<encoder>
+			<charset>utf-8</charset>
+			<pattern>${CONSOLE_PATTERN}</pattern>
+		</encoder>
+	</appender>
+
+	<!-- appender name="FILE"
+		class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>tt.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+			<fileNamePattern>${LOG_PATH}/${PROJECT_LOG_PREFIX}.%i.log.zip
+			</fileNamePattern>
+		</rollingPolicy>
+		<triggeringPolicy
+			class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<MaxFileSize>20MB</MaxFileSize>
+		</triggeringPolicy>
+		<encoder>
+			<pattern>${FILE_PATTERN}</pattern>
+		</encoder>
+	</appender-->
+
+	<!-- appender name="ERROR"
+		<file>${LOG_PATH}/${PROJECT_LOG_PREFIX}.error.log</file>
+		<rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+			<fileNamePattern>${LOG_PATH}/${PROJECT_LOG_PREFIX}.error.%i.log.zip
+			</fileNamePattern>
+		</rollingPolicy>
+		<triggeringPolicy
+			class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+			<MaxFileSize>10MB</MaxFileSize>
+		</triggeringPolicy>
+		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
+			<level>ERROR</level>
+		</filter>
+		<encoder>
+			<pattern>${FILE_PATTERN}</pattern>
+		</encoder>
+	</appender-->
+
+	<root level="DEBUG">
+		<appender-ref ref="STDOUT" />
+	</root>
+</configuration>
