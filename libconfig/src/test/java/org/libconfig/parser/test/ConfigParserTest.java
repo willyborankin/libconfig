@@ -19,7 +19,7 @@ public class ConfigParserTest {
 		InputStream in = ConfigParserTest.class.getClassLoader().getResourceAsStream("scalar-values.conf");
 		ConfigParser configParser = new ConfigParser(in);
 		LOG.info("Start");
-		Config configuration = configParser.getConfiguration();
+		Config configuration = configParser.buildConfiguration();
 		LOG.info("Stop");
 //		Assert.assertFalse(configuration.getSettings().isEmpty());
 //		for (Setting setting : configuration.getSettings()) {
@@ -32,7 +32,7 @@ public class ConfigParserTest {
 		InputStream in = ConfigParserTest.class.getClassLoader().getResourceAsStream("opencv.conf");
 		ConfigParser configParser = new ConfigParser(in);
 		LOG.info("Start");
-		Config configuration = configParser.getConfiguration();
+		Config configuration = configParser.buildConfiguration();
 		LOG.info("Stop");
 	}
 	

@@ -13,7 +13,7 @@ import org.libconfig.*;
 
 public class ConfigParser implements ConfigParserConstants {
 
-  final public Config getConfiguration() throws ParseException {
+  final public Config buildConfiguration() throws ParseException {
         Config config = new Config();
     settingList(config);
     jj_consume_token(0);

@@ -1,18 +1,34 @@
 package org.libconfig;
 
+import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.Writer;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.libconfig.Setting.Type;
 
 public class Config {
 
 	public static enum Format {
-		EQUALS,
-		COLON,
-		NONE;
+		EQUALS(" = "),
+		COLON(":"),
+		NONE("");
+		
+		private final String value;
+
+		private Format(String value) {
+			this.value = value;
+		}
+		
+		public String value() {
+			return value;
+		}
+		
 	};
 	
 	public static enum NumberFormat {
@@ -20,14 +36,14 @@ public class Config {
 		HEX;
 	};
 	
-	private final Setting 	root;
+	private final List<Setting> settings;
 
 	private Format 		format;
 	
 	private NumberFormat numberFormat;
 	
 	public Config() {
-		root = new Setting("_ROOT_", Type.UNKNOWN);
+		settings = new ArrayList<>();
 		format = Format.COLON;
 		numberFormat = NumberFormat.DEFAULT;
 	}
@@ -48,62 +64,57 @@ public class Config {
 		this.numberFormat = numberFormat;
 	}
 
-	public Setting getRoot() {
-		return root;
-	}
-
 	public Setting lookup(String name) { 
 //		for (Setting setting : root.get)
 		return null; 
 	}
 
 	public Setting addSetting(String name, String value) {
-		Setting setting = new Setting(name, Type.STRING);
-		return setting;
+		return createSetting(name, Type.STRING);
 	}
 
 	public Setting addSetting(String name, int value) {
-		Setting setting = new Setting(name, Type.INTEGER);
-		return setting;
+		return createSetting(name, Type.INTEGER);
 	}
 	
 	public Setting addSetting(String name, double value) {
-		Setting setting = new Setting(name, Type.FLOAT);
-		return setting;
+		return createSetting(name, Type.FLOAT);
 	}
 	
 	public Setting addSetting(String name, boolean value) {
-		Setting setting = new Setting(name, Type.BOOLEAN);
-		return setting;
+		return createSetting(name, Type.BOOLEAN);
 	}
 
-	public Setting addSetting(Type type) {
+	public Setting addSetting(String name, Type type) {
 		if (type != Type.ARRAY && type != Type.GROUP && type != Type.LIST)
 			throw new IllegalArgumentException("Unsupported group type " + type);
-		return new Setting(type);
+		return createSetting(name, type);
 	}
 	
-	public void writeFile(String file) throws IOException {
+	private Setting createSetting(String name, Type type) {
+		Setting setting = new Setting(name, type);
+		settings.add(setting);
+		return setting;
+	}
+	
+	public void write(String file) throws IOException {
 		if (file == null) throw new IllegalArgumentException("File has not been set");
-		writeFile(new File(file));
+		write(new File(file));
 	}
 
-	public void writeFile(File file) throws IOException {
+	public void write(File file) throws IOException {
 		if (file == null) throw new IllegalArgumentException("File has not been set");
-		writeFile(new FileWriter(file));
+		write(new FileOutputStream(file));
 	}
 
-	public void writeFile(Writer out) throws IOException {
+	public void write(OutputStream out) throws IOException {
 		if (out == null) throw new IllegalArgumentException("Output stream has not been set");
-		try {
-//			for (Setting setting : root.getChildren()) {
-//				setting.write(out, this);
-//				out.flush();
-//			}
-//			out.write("\n");
-		} finally {
-			out.close();
+		BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(out, Charset.defaultCharset()));
+		for (Setting setting : settings) {
+			setting.write(bufferedWriter, this);
 		}
+		bufferedWriter.flush();
+		bufferedWriter.write("\n");
 	}
 	
 }
