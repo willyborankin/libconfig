@@ -1,10 +1,10 @@
-package org.libconfig.parser.test;
+package org.libconfig.test;
 
+import java.io.File;
 import java.io.IOException;
 
 import org.libconfig.Config;
-import org.libconfig.Config.Format;
-import org.libconfig.Config.NumberFormat;
+import org.libconfig.ConfigOutputter;
 import org.libconfig.Setting;
 import org.libconfig.Setting.Type;
 import org.libconfig.parser.ParseException;
@@ -14,16 +14,14 @@ public class ConfigSaveFileTest {
 
 	@Test
 	public void saveRightStructure() throws IOException, ParseException {
-		Config configuration = new Config();
-		configuration.setFormat(Format.COLON);
-		configuration.setNumberFormat(NumberFormat.HEX);
+		Config config = new Config();
 		
-		configuration.addSetting("SCALAR_SETTING_0", 1340);
-		configuration.addSetting("SCALAR_SETTING_1", false);
-		configuration.addSetting("SCALAR_SETTING_2", 123e-100);
-		configuration.addSetting("SCALAR_SETTING_3","asdsadsadsds");
+		config.addSetting("SCALAR_SETTING_0", 1340);
+		config.addSetting("SCALAR_SETTING_1", false);
+		config.addSetting("SCALAR_SETTING_2", 123e-100);
+		config.addSetting("SCALAR_SETTING_3","asdsadsadsds");
 
-		Setting groupSetting = configuration.addSetting("GROUP_SETTING_1", Type.GROUP);
+		Setting groupSetting = config.addSetting("GROUP_SETTING_1", Type.GROUP);
 		
 		groupSetting.addSetting("ff", "ff");
 		groupSetting.addSetting("gg", 1);
@@ -50,17 +48,20 @@ public class ConfigSaveFileTest {
 			innerArrayInGroup.addSetting(i);
 		}
 		
-		Setting listSetting = configuration.addSetting("SIMPLE_LIST", Type.LIST);
+		Setting listSetting = config.addSetting("SIMPLE_LIST", Type.LIST);
 		for (int i = 0; i < 10; i++) {
 			listSetting.addSetting(i);
 		}
 		
-		Setting arraySetting = configuration.addSetting("SIMPLE_ARRAY", Type.ARRAY);
+		Setting arraySetting = config.addSetting("SIMPLE_ARRAY", Type.ARRAY);
 		for (int i = 0; i < 10; i++) {
 			arraySetting.addSetting(i);
 		}
-//		File file = new File("11.cgf");
-		configuration.write(System.out);
+		
+		File file = new File("11.cgf");
+		ConfigOutputter configOutputter = new ConfigOutputter();
+		configOutputter.output(config, file);
+		
 //		parse back
 //		ConfigParser configParser = new ConfigParser(new FileInputStream(file));
 //		Config config = configParser.buildConfiguration();

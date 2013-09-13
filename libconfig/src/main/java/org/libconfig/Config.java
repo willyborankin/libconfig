@@ -1,72 +1,24 @@
 package org.libconfig;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 import org.libconfig.Setting.Type;
 
 public class Config {
 
-	public static enum Format {
-		EQUALS(" = "),
-		COLON(":"),
-		NONE("");
-		
-		private final String value;
+	private final Map<String, Setting> settings;
 
-		private Format(String value) {
-			this.value = value;
-		}
-		
-		public String value() {
-			return value;
-		}
-		
-	};
-	
-	public static enum NumberFormat {
-		DEFAULT,
-		HEX;
-	};
-	
-	private final List<Setting> settings;
-
-	private Format 		format;
-	
-	private NumberFormat numberFormat;
-	
 	public Config() {
-		settings = new ArrayList<>();
-		format = Format.COLON;
-		numberFormat = NumberFormat.DEFAULT;
-	}
-
-	public Format getFormat() {
-		return format;
-	}
-
-	public void setFormat(Format format) {
-		this.format = format;
-	}
-
-	public NumberFormat getNumberFormat() {
-		return numberFormat;
-	}
-
-	public void setNumberFormat(NumberFormat numberFormat) {
-		this.numberFormat = numberFormat;
+		settings = new LinkedHashMap<>();
 	}
 
 	public Setting lookup(String name) { 
-//		for (Setting setting : root.get)
-		return null; 
+		if (name == null) throw new IllegalArgumentException("Name for settings has not been set");
+		if (name.contains(".")) {
+			String[] names = name.split(".");
+		}
+		return settings.get(name); 
 	}
 
 	public Setting addSetting(String name, String value) {
@@ -93,28 +45,13 @@ public class Config {
 	
 	private Setting createSetting(String name, Type type) {
 		Setting setting = new Setting(name, type);
-		settings.add(setting);
+		setting.setConfig(this);
+		settings.put(setting.getName(), setting);
 		return setting;
 	}
-	
-	public void write(String file) throws IOException {
-		if (file == null) throw new IllegalArgumentException("File has not been set");
-		write(new File(file));
-	}
 
-	public void write(File file) throws IOException {
-		if (file == null) throw new IllegalArgumentException("File has not been set");
-		write(new FileOutputStream(file));
-	}
-
-	public void write(OutputStream out) throws IOException {
-		if (out == null) throw new IllegalArgumentException("Output stream has not been set");
-		BufferedWriter bufferedWriter = new BufferedWriter(new OutputStreamWriter(out, Charset.defaultCharset()));
-		for (Setting setting : settings) {
-			setting.write(bufferedWriter, this);
-		}
-		bufferedWriter.flush();
-		bufferedWriter.write("\n");
+	protected Map<String, Setting> getSettings() {
+		return settings;
 	}
 	
 }

@@ -1,9 +1,7 @@
 package org.libconfig;
 
-import java.io.IOException;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 public class Setting {
 
@@ -21,9 +19,13 @@ public class Setting {
 	
 	private final Type type;
 	
+	private Config config;
+	
+	private Setting parent;
+	
 	private Object settingValue;
 	
-	private List<Setting> settings;
+	private Map<String, Setting> settings;
 	
 	public Setting(Type type) {
 		this(null, type);
@@ -32,13 +34,14 @@ public class Setting {
 	public Setting(String name, Type type) {
 		this.name = name;
 		this.type = type;
-		settings = new ArrayList<>();
+		settings = new LinkedHashMap<>();
 	}
 	
 	public String getName() {
 		return name;
 	}
 
+	@SuppressWarnings("unchecked")
 	public <T> T getValue() {
 		return (T) settingValue;
 	}
@@ -46,11 +49,42 @@ public class Setting {
 	protected void addValue(Object value) {
 		this.settingValue = value;
 	}
+
+	public Setting getParent() {
+		return parent;
+	}
 	
+	protected void setParent(Setting parent) {
+		this.parent = parent;
+	}
+
 	public Type getType() {
 		return type;
 	}
 
+	public Config getConfig() {
+		return config;
+	}
+
+	protected void setConfig(Config config) {
+		this.config = config;
+	}
+
+	public Setting lookup(String name) {
+		return settings.get(name); 
+	}
+	
+	public String getPath() {
+		String path = getName();
+		Setting parentCursor = parent;
+		while (parentCursor != null) {
+			String tmp = path;
+			path = parentCursor.getName() + "." + tmp;
+			parentCursor = parentCursor.getParent();
+		}
+		return path;
+	}
+	
 	public Setting addSetting(String name, String value) {
 		Setting setting = createSetting(name, Type.STRING);
 		setting.addValue(value);
@@ -107,38 +141,16 @@ public class Setting {
 	
 	private Setting createSetting(String name, Type type) {
 		Setting setting = new Setting(name, type);
-		settings.add(setting);
+		setting.setConfig(config);
+		setting.setParent(this);
+		settings.put(setting.getName(), setting);
 		return setting;
 	}
 	
-	protected void write(Writer writer, Config config) throws IOException {
-		if (getName() != null) {
-			writer.write(getName());
-			writer.write(config.getFormat().value());
-		}
-		if (getType() == Type.GROUP) {
-			writer.write("{\n");
-		} else if (getType() == Type.LIST) {
-			writer.write("(");
-		} else if (getType() == Type.ARRAY) {
-			writer.write("[");
-		}
-		writer.write(getValue() != null ? getValue().toString() : "");
-		if (!settings.isEmpty()) {
-			for (Setting setting : settings) {
-				setting.write(writer, config);
-			}
-		}
-		if (getType() == Type.GROUP) {
-			writer.write("}");
-		} else if (getType() == Type.LIST) {
-			writer.write(")");
-		} else if (getType() == Type.ARRAY) {
-			writer.write("]");
-		}
-		writer.write("\n");
+	protected Map<String, Setting> getSettings() {
+		return settings;
 	}
-
+	
 	@Override
 	public String toString() {
 		return "Setting [name=" + name + ", type=" + type + "]";
