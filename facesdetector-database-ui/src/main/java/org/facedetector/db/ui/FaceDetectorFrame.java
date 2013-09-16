@@ -4,30 +4,35 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
+import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JMenuBar;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSplitPane;
 import javax.swing.JTree;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.MutableTreeNode;
+import javax.swing.tree.TreeSelectionModel;
 
 import org.facedetector.db.ui.gradient.GradientPanelHolder;
-import org.facedetector.db.ui.model.FileListTreeModel;
+import org.facedetector.db.ui.panel.ImageSettingPanel;
+import org.jdesktop.swingx.treetable.FileSystemModel;
 
 import com.jgoodies.forms.factories.Borders;
 import com.jidesoft.dialog.JideOptionPane;
 import com.jidesoft.plaf.LookAndFeelFactory;
 import com.jidesoft.swing.JideBorderLayout;
+import com.jidesoft.swing.JideBoxLayout;
+import com.jidesoft.swing.JideMenu;
 import com.jidesoft.swing.JideScrollPane;
 import com.jidesoft.swing.JideSplitPane;
 
@@ -37,14 +42,24 @@ public class FaceDetectorFrame extends JFrame {
 
 	private static ResourceBundle resourceBundle;
 	
+	private FileSystemModel fileSystemModel;
+	
+	private JTree fileListTree;
+	
 	public FaceDetectorFrame() {
-		
+		super(resourceBundle.getString("main.window.title"));
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
-		
 		setWindowSize();
-		
+		setJMenuBar(createMenuBar());
 		setContentPane(createContentPane());
+	}
 
+	public static ResourceBundle getResourceBundle() {
+		return resourceBundle;
+	}
+
+	public JTree getFileListTree() {
+		return fileListTree;
 	}
 
 	private void setWindowSize() {
@@ -55,55 +70,91 @@ public class FaceDetectorFrame extends JFrame {
 		setExtendedState(getExtendedState() | MAXIMIZED_BOTH);
 	}
 	
+	private JMenuBar createMenuBar() {
+		JMenuBar menuBar = new JMenuBar();
+		
+		JideMenu jideMenu = new JideMenu(resourceBundle.getString("dir.imgs.menu.label"));
+		
+		jideMenu.add(new JMenuItem(new AbstractAction(resourceBundle.getString("dir.imgs.add.folder.menu.label")) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				JFileChooser imgsDirectoryChooser = new JFileChooser();
+				imgsDirectoryChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+				if (imgsDirectoryChooser.showOpenDialog(FaceDetectorFrame.this) == JFileChooser.APPROVE_OPTION) {
+					fileSystemModel.setRoot(imgsDirectoryChooser.getSelectedFile());
+				}
+			}
+			
+		}));
+		
+		jideMenu.add(new JMenuItem(new AbstractAction(resourceBundle.getString("dir.imgs.descr.save.label")) {
+			private static final long serialVersionUID = 1L;
+			
+			@Override
+			public void actionPerformed(ActionEvent e) {
+			}
+			
+		}));
+		
+		jideMenu.addSeparator();
+		jideMenu.add(new JMenuItem(new AbstractAction(resourceBundle.getString("dir.imgs.descr.exit.label")) {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				FaceDetectorFrame.this.processEvent(new WindowEvent(FaceDetectorFrame.this, WindowEvent.WINDOW_CLOSING));
+			}
+			
+		}));
+		
+		menuBar.add(jideMenu);
+
+		return menuBar;
+	}
+	
 	private JPanel createContentPane() {
 		JPanel contanetPane = new JPanel(new BorderLayout());
-		
 		contanetPane.add(createSplitPane(), JideBorderLayout.CENTER);
-		
 		return contanetPane;
 	}	
 	
 	private JideSplitPane createSplitPane() {
-		JideSplitPane splitPane = new JideSplitPane();
+		JideSplitPane splitPane = new JideSplitPane(JideSplitPane.HORIZONTAL_SPLIT);
+		
+		fileListTree = createFolderTree();
+		ImageSettingPanel imgSettingPanel = new ImageSettingPanel(this);
+		
+		fileListTree.addTreeSelectionListener(imgSettingPanel);
+		
+		JideScrollPane listScrollPane = new JideScrollPane(fileListTree);
+		listScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+		listScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		listScrollPane.setBorder(BorderFactory.createEmptyBorder());
 		
 		GradientPanelHolder imgsListPanelHolder = new GradientPanelHolder(resourceBundle.getString("left.panel.imgs.label"));
-		imgsListPanelHolder.add(createFilesListTree());
+		imgsListPanelHolder.add(fileListTree);
 		GradientPanelHolder imgsDescPanelHolder = new GradientPanelHolder(resourceBundle.getString("right.panel.img.desc.label"));
-		imgsListPanelHolder.add(createImageSettingPanel());
+		imgsDescPanelHolder.add(imgSettingPanel);
 		
 		splitPane.setOneTouchExpandable(true);
-		splitPane.add(imgsListPanelHolder, JSplitPane.LEFT);	
-		splitPane.add(imgsDescPanelHolder, JSplitPane.RIGHT);	
+		splitPane.setProportionalLayout(false);
+		splitPane.add(imgsListPanelHolder, JideBoxLayout.FLEXIBLE);	
+		splitPane.add(imgsDescPanelHolder, JideBoxLayout.FLEXIBLE);	
 		splitPane.setBorder(BorderFactory.createEmptyBorder());
 		splitPane.setBorder(Borders.DLU2_BORDER);
 		
 		return splitPane;
 	}
 
-	private JScrollPane createFilesListTree() {
-		
-		JideScrollPane listScrollPane = new JideScrollPane(createJTree());
-		listScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
-		listScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		listScrollPane.setBorder(BorderFactory.createEmptyBorder());
-		
-		return listScrollPane;
-	}
-	
-	private JTree createJTree() {
-		MutableTreeNode rootNode = new DefaultMutableTreeNode();
-		JTree imgsListTree = new JTree(new FileListTreeModel(rootNode));
-		imgsListTree.setRootVisible(false);
+	private JTree createFolderTree() {
+		fileSystemModel = new FileSystemModel(null);
+		JTree imgsListTree = new JTree(fileSystemModel);
+		imgsListTree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 		return imgsListTree;
-	}
-	
-	private JPanel createImageSettingPanel() {
-		JPanel imgSettingPanel = new JPanel();
-
-		imgSettingPanel.setBorder(BorderFactory.createEmptyBorder());
-		imgSettingPanel.setBorder(Borders.DLU2_BORDER);
-		
-		return imgSettingPanel;
 	}
 	
 	public static void main(String[] args) {
@@ -133,20 +184,6 @@ public class FaceDetectorFrame extends JFrame {
 		});
 		
 		mainFrame.setVisible(true);
-		
-		JFileChooser imgsDirectoryChooser = new JFileChooser();
-		imgsDirectoryChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
-		
-		if (imgsDirectoryChooser.showOpenDialog(mainFrame) == JFileChooser.APPROVE_OPTION) {
-			//TODO something
-		} else {
-			JideOptionPane.showConfirmDialog(
-					mainFrame,
-					resourceBundle.getString("exit.dialog.message"),
-					resourceBundle.getString("exit.dialog.title"),
-					JideOptionPane.YES_NO_OPTION);
-		}
-		
 	}
 
 	private static void setLookAndFeel() {
