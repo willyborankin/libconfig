@@ -1,34 +1,23 @@
 package org.facedetector.db.ui.panel;
 
-import static org.facedetector.db.ui.Constants.Gender;
-
-import java.awt.Dimension;
-import java.awt.event.ActionEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ResourceBundle;
 
 import javax.imageio.ImageIO;
-import javax.swing.AbstractAction;
 import javax.swing.AbstractListModel;
-import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.JSeparator;
-import javax.swing.JTree;
-import javax.swing.border.BevelBorder;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreePath;
-import javax.swing.tree.TreeSelectionModel;
 
 import net.java.dev.designgridlayout.DesignGridLayout;
 import net.java.dev.designgridlayout.LabelAlignment;
 
+import org.facedetector.db.ui.Constants.Gender;
 import org.facedetector.db.ui.FaceDetectorFrame;
 import org.facedetector.db.ui.utils.JXErrorDialog;
 
@@ -54,10 +43,6 @@ public class ImageSettingPanel extends JPanel implements TreeSelectionListener {
 		layout.labelAlignment(LabelAlignment.RIGHT);
 
 		imgLabel = new JLabel();
-		imgLabel.setSize(150, 850);
-		imgLabel.setBorder(BorderFactory.createBevelBorder(BevelBorder.LOWERED));
-		imgLabel.setPreferredSize(new Dimension(200, 450));
-		
 		imgName = new JLabel();
 		
 		layout.row()
@@ -66,11 +51,19 @@ public class ImageSettingPanel extends JPanel implements TreeSelectionListener {
 			.add(imgLabel);
 		layout.row()
 			.grid(new JLabel(resourceBundle.getString("age.name.label")))
-			.add(new JList<String>(new String[]{"A", "B", "C"}))
+			.add(new JList<String>(new String[]{
+				resourceBundle.getString("age.1217.label"),
+				resourceBundle.getString("age.1824.label"),
+				resourceBundle.getString("age.2534.label"),
+				resourceBundle.getString("age.3534.label"),
+				resourceBundle.getString("age.4564.label"),
+				resourceBundle.getString("age.5565.label"),
+				resourceBundle.getString("age.65.label")
+			}))
 			.spanRow();
 		layout.row()
 			.grid(new JLabel(resourceBundle.getString("gender.name.label")))
-			.add(new JList<Gender>(new AbstractListModel<Gender>() {
+			.add(new JList<String>(new AbstractListModel<String>() {
 
 				private static final long serialVersionUID = 1L;
 
@@ -80,39 +73,23 @@ public class ImageSettingPanel extends JPanel implements TreeSelectionListener {
 				}
 
 				@Override
-				public Gender getElementAt(int index) {
-					return Gender.ALL_GENDERS[index];
+				public String getElementAt(int index) {
+					String value = null;
+					switch (Gender.ALL_GENDERS[index]) {
+					case FEMALE:
+						value = resourceBundle.getString("gender.female.label");
+						break;
+					case MALE:
+						value = resourceBundle.getString("gender.male.label");
+						break;
+					}
+					return value;
 				}
 				
 			 }))
 			.spanRow();
 		layout.emptyRow();
 		layout.emptyRow();
-		layout.row().center().fill().add(new JSeparator());
-		layout.row()
-			.right()
-			.add(new JButton(new AbstractAction(resourceBundle.getString("previous.label")) {
-					private static final long serialVersionUID = 1L;
-	
-					@Override
-					public void actionPerformed(ActionEvent e) {
-						final JTree folderTree = ImageSettingPanel.this.detectorFrame.getFileListTree();
-						TreeModel treeModel = folderTree.getModel();
-						TreePath treePath = folderTree.getSelectionPath();
-						
-						folderTree.setSelectionPath(treePath.getParentPath());
-					}
-					
-			}))
-			.add(new JButton(new AbstractAction(resourceBundle.getString("next.label")) {
-
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public void actionPerformed(ActionEvent e) {
-				}
-				
-			}));
 		setBorder(Borders.DLU21_BORDER);
 	}
 

@@ -77,6 +77,12 @@
 			<artifactId>designgridlayout</artifactId>
 			<version>1.11</version>
 		</dependency>
+		
+		<dependency>
+			<groupId>java-libconfig</groupId>
+			<artifactId>libconfig</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
 
 	</dependencies>
 

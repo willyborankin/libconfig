@@ -1,7 +1,7 @@
 package org.libconfig;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Setting {
 
@@ -25,7 +25,7 @@ public class Setting {
 	
 	private Object settingValue;
 	
-	private Map<String, Setting> settings;
+	private List<Setting> settings;
 	
 	public Setting(Type type) {
 		this(null, type);
@@ -34,7 +34,7 @@ public class Setting {
 	public Setting(String name, Type type) {
 		this.name = name;
 		this.type = type;
-		settings = new LinkedHashMap<>();
+		settings = new ArrayList<>();
 	}
 	
 	public String getName() {
@@ -70,8 +70,25 @@ public class Setting {
 		this.config = config;
 	}
 
+	public int getLength() {
+		return settings.size();
+	}
+
 	public Setting lookup(String name) {
-		return settings.get(name); 
+		Setting found = null;
+		for (Setting setting : settings) {
+			if (name.equals(setting.getName())) {
+				found = setting;
+				break;
+			}
+		}
+		return found; 
+	}
+	
+	public Setting lookup(int index) {
+		if (type != Type.LIST && type != Type.ARRAY)
+			throw new IllegalArgumentException("Such method does not applicable for type " + type);
+		return settings.get(index);
 	}
 	
 	public String getPath() {
@@ -79,52 +96,56 @@ public class Setting {
 		Setting parentCursor = parent;
 		while (parentCursor != null) {
 			String tmp = path;
-			path = parentCursor.getName() + "." + tmp;
+//			if (parentCursor.getType() == Type.ARRAY || parentCursor.getType() == Type.GROUP) {
+//				path = ".[" + parentCursor.getSettings().values(). + "]" + tmp;
+//			} else {
+				path = parentCursor.getName() + "." + tmp;
+//			}
 			parentCursor = parentCursor.getParent();
 		}
 		return path;
 	}
 	
 	public Setting addSetting(String name, String value) {
-		Setting setting = createSetting(name, Type.STRING);
-		setting.addValue(value);
+		Setting setting = createSetting(name, Type.STRING, value);
 		return setting;
 	}
 	
 	public Setting addSetting(String name, int value) {
-		Setting setting = createSetting(name, Type.INTEGER);
-		setting.addValue(value);
+		Setting setting = createSetting(name, Type.INTEGER, value);
 		return setting;
 	}
 	
 	public Setting addSetting(String name, double value) {
-		Setting setting = createSetting(name, Type.FLOAT);
-		setting.addValue(value);
+		Setting setting = createSetting(name, Type.FLOAT, value);
 		return setting;
 	}
 	
 	public Setting addSetting(String name, boolean value) {
-		Setting setting = createSetting(name, Type.BOOLEAN);
-		setting.addValue(value);
+		Setting setting = createSetting(name, Type.BOOLEAN, value);
 		return setting;
 	}
 	
 	public Setting addSetting(String value) {
-		return createSetting(null, Type.STRING); 
+		return createSetting(null, Type.STRING, value); 
 	}
 	
 	public Setting addSetting(int value) {
 		if (getType() != Type.LIST && getType() != Type.ARRAY)
-			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		return createSetting(null, Type.INTEGER); 
+				throw new IllegalArgumentException("Such method does not applicable for type " + type);
+		return createSetting(null, Type.INTEGER, value);
 	}
 	
 	public Setting addSetting(double value) {
-		return createSetting(null, Type.FLOAT); 
+		if (getType() != Type.LIST && getType() != Type.ARRAY)
+				throw new IllegalArgumentException("Such method does not applicable for type " + type);
+		return createSetting(null, Type.FLOAT, value); 
 	}
 	
 	public Setting addSetting(boolean value) {
-		return createSetting(null, Type.BOOLEAN); 
+		if (getType() != Type.LIST && getType() != Type.ARRAY)
+				throw new IllegalArgumentException("Such method does not applicable for type " + type);
+		return createSetting(null, Type.BOOLEAN, value); 
 	}
 	
 	public Setting addSetting(Type type) {
@@ -135,19 +156,44 @@ public class Setting {
 		return createSetting(name, type);
 	}
 	
-	public Setting addSetting(String name, Type type, int ... array) {
-		return createSetting(name, type);
+	public Setting addSetting(String name, Type type, String ... array) {
+		if (type != Type.ARRAY && type != Type.GROUP && type != Type.LIST)
+			throw new IllegalArgumentException("Unsupported group type " + type);
+		return createSetting(name, type, array);
+	}
+	
+	public Setting addSetting(String name, int ... array) {
+		if (getType() != Type.ARRAY)
+			throw new IllegalArgumentException("Unsupported type " + type);
+		return createSetting(name, Type.INTEGER, array);
+	}
+	
+	public Setting addSetting(String name, double ... array) {
+		if (getType() != Type.ARRAY)
+			throw new IllegalArgumentException("Unsupported type " + type);
+		return createSetting(name, Type.FLOAT, array);
+	}
+	
+	public Setting addSetting(String name, boolean ... array) {
+		if (getType() != Type.ARRAY)
+			throw new IllegalArgumentException("Unsupported type " + type);
+		return createSetting(name, Type.BOOLEAN, array);
 	}
 	
 	private Setting createSetting(String name, Type type) {
+		return createSetting(name, type, null);
+	}
+	
+	private <T> Setting createSetting(String name, Type type, T value) {
 		Setting setting = new Setting(name, type);
 		setting.setConfig(config);
 		setting.setParent(this);
-		settings.put(setting.getName(), setting);
+		setting.addValue(value);
+		settings.add(setting);
 		return setting;
 	}
 	
-	protected Map<String, Setting> getSettings() {
+	protected List<Setting> getSettings() {
 		return settings;
 	}
 	
