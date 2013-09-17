@@ -1,5 +1,6 @@
 package org.libconfig;
 
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
@@ -35,64 +36,61 @@ public class Config {
 		return found;
 	}
 	
-	public Setting addSetting(String name, String value) {
+	public Setting addScalar(String name, String value) {
 		return createSetting(name, Type.STRING, value);
 	}
 
-	public Setting addSetting(String name, int value) {
+	public Setting addScalar(String name, Integer value) {
 		return createSetting(name, Type.INTEGER, value);
 	}
 	
-	public Setting addSetting(String name, double value) {
+	public Setting addScalar(String name, Double value) {
 		return createSetting(name, Type.FLOAT, value);
 	}
 	
-	public Setting addSetting(String name, boolean value) {
+	public Setting addScalar(String name, Boolean value) {
 		return createSetting(name, Type.BOOLEAN, value);
 	}
 
-	public Setting addSetting(String name, String ... values) {
-		Setting arraySetting = createSetting(name, Type.ARRAY);
-		for (String value : values)
-			arraySetting.addSetting(value);
-		return arraySetting;
+	public Setting addArray(String name, String ... values) {
+		return createSetting(name, Type.ARRAY, values);
 	}
 	
-	public Setting addSetting(String name, int ... values) {
-		Setting arraySetting = createSetting(name, Type.ARRAY);
-		for (int value : values)
-			arraySetting.addSetting(value);
-		return arraySetting;
+	public Setting addArray(String name, Integer ... values) {
+		return createSetting(name, Type.ARRAY, values);
+	}
+
+	public Setting addArray(String name, Double ... values) {
+		return createSetting(name, Type.ARRAY, values);
+	}
+
+	public Setting addArray(String name, Boolean ... values) {
+		return createSetting(name, Type.ARRAY, values);
+	}
+
+	public Setting addList(String name) {
+		return createSetting(name, Type.LIST, new ArrayList<>());
+	}
+
+	public Setting addGroup(String name) {
+		return createSetting(name, Type.GROUP, new ArrayList<>());
 	}
 	
-	public Setting addSetting(String name, double ... values) {
-		Setting arraySetting = createSetting(name, Type.ARRAY);
-		for (double value : values)
-			arraySetting.addSetting(value);
-		return arraySetting;
-	}
-	
-	public Setting addSetting(String name, boolean ... values) {
-		Setting arraySetting = createSetting(name, Type.ARRAY);
-		for (boolean value : values)
-			arraySetting.addSetting(value);
-		return arraySetting;
-	}
-	
-	public Setting addSetting(String name, Type type) {
-		if (type != Type.ARRAY && type != Type.GROUP && type != Type.LIST)
-			throw new IllegalArgumentException("Unsupported group type " + type);
-		return createSetting(name, type);
-	}
-	
-	private Setting createSetting(String name, Type type) {
-		return createSetting(name, type, null);
-	}
+//	public Setting addSetting(String name, Type type) {
+//		if (type != Type.ARRAY && type != Type.GROUP && type != Type.LIST)
+//			throw new IllegalArgumentException("Unsupported group type " + type);
+//		return createSetting(name, type);
+//	}
+//	
+//	private Setting createSetting(String name, Type type) {
+//		return createSetting(name, type, null);
+//	}
 	
 	private <T> Setting createSetting(String name, Type type, T value) {
 		Setting setting = new Setting(name, type);
-		setting.setConfig(this);
-		setting.addValue(value);
+		setting.config = this;
+		setting.value = value;
+		setting.type = type;
 		settings.put(setting.getName(), setting);
 		return setting;
 	}

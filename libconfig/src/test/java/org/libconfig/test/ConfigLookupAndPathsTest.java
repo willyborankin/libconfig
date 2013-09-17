@@ -39,8 +39,8 @@ public class ConfigLookupAndPathsTest {
 	public void testArrayAndListPaths() {
 		Config config = createConfig();
 		
-		Setting arraySetting = config.addSetting("SOME_SETTINGS_ARRAY", Type.ARRAY);
-		Setting listSetting = config.addSetting("SOME_SETTINGS_LIST", Type.LIST);
+		Setting arraySetting = config.addArray("SOME_SETTINGS_ARRAY", Type.ARRAY);
+		Setting listSetting = config.addArray("SOME_SETTINGS_LIST", Type.LIST);
 		for (int i = 0; i < 10; i++) {
 			arraySetting.addSetting(i);
 			listSetting.addSetting(i);
@@ -58,7 +58,7 @@ public class ConfigLookupAndPathsTest {
 	
 	private Config createConfig() {
 		Config config = new Config();
-		config.addSetting("SOME_SETTINGS_1", true);
+		config.addScalar("SOME_SETTINGS_1", true);
 
 		Setting setting = config.addSetting("SOME_SETTINGS_0", 1);
 		setting.addSetting("CHILD1", 1);

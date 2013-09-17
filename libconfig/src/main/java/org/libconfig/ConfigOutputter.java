@@ -8,6 +8,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.Charset;
+import java.util.List;
 
 import org.libconfig.Setting.Type;
 
@@ -106,6 +107,14 @@ public class ConfigOutputter {
 		bufferedWriter.flush();
 	}
 	
+	private void printValue(Object value, Writer writer) throws IOException {
+		if (value instanceof String) {
+			printString(value, writer);
+		} else {
+			writer.write(value != null ? value.toString() : "");
+		}
+	}
+	
 	private void printSetting(Setting setting, Writer writer) throws IOException {
 		switch (setting.getType()) {
 		case STRING:
@@ -134,17 +143,22 @@ public class ConfigOutputter {
 
 	private void printString(Setting setting, Writer writer) throws IOException {
 		printName(setting, writer);
+		String value = setting.getValue();
+		printString(value, writer);
+	}
+
+	private void printString(Object value, Writer writer) throws IOException {
 		writer.write(QUOTES);
-		writer.write(setting.getValue() != null ? setting.getValue().toString() : "");
+		writer.write(value != null ? value.toString() : "");
 		writer.write(QUOTES);
 	}
 	
 	private void printInt(Setting setting, Writer writer) throws IOException {
 		printName(setting, writer);
 		if (numberFormat == NumberFormat.HEX) {}
-		writer.write(setting.getValue() != null ? setting.getValue().toString() : "");
+		printValue(setting.getValue(), writer);
 	}
-	
+
 	private void printFloat(Setting setting, Writer writer) throws IOException {
 		printName(setting, writer);
 		writer.write(setting.getValue() != null ? setting.getValue().toString() : "");
@@ -159,12 +173,13 @@ public class ConfigOutputter {
 		printName(setting, writer);
 		writer.write(LBRACKET);
 		depth++;
-		for (int i = 0; i < setting.getSettings().size(); i++) {
+		Object[] values = setting.getValue();
+		for (int i = 0; i < values.length; i++) {
 			if (i > 0) {
 				writer.write(COMMA);
 				writer.write(" ");
 			}
-			printSetting(setting.getSettings().get(i), writer);
+			printValue(values[i], writer);
 		}
 		writer.write(RBRACKET);
 		depth--;
@@ -175,8 +190,9 @@ public class ConfigOutputter {
 		depth++;
 		writer.write(LPAREN);
 		boolean innerComplexType = false; 
-		for (int i = 0; i < setting.getSettings().size(); i++) {
-			Setting subSetting = setting.getSettings().get(i);
+		List<Setting> settings = setting.getValue();
+		for (int i = 0; i < settings.size(); i++) {
+			Setting subSetting = settings.get(i);
 			if (i > 0) {
 				writer.write(COMMA);
 				writer.write(" ");
@@ -203,13 +219,14 @@ public class ConfigOutputter {
 		printName(setting, writer);
 		depth++;
 		writer.write(LBRACE);
-		for (int i = 0; i < setting.getSettings().size(); i++) {
+		List<Setting> settings = setting.getValue();
+		for (int i = 0; i < settings.size(); i++) {
 			if (i > 0) {
 				writer.write(COMMA);
 				writer.write(" ");
 			}
 			writer.write(getIndent());
-			printSetting(setting.getSettings().get(i), writer);
+			printSetting(settings.get(i), writer);
 		}
 		depth--;
 		writer.write(getIndent());
