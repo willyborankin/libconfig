@@ -1,10 +1,12 @@
 package org.libconfig.test;
 
-import static org.testng.Assert.*;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertNotNull;
+
+import java.util.List;
 
 import org.libconfig.Config;
 import org.libconfig.Setting;
-import org.libconfig.Setting.Type;
 import org.testng.annotations.Test;
 
 public class ConfigLookupAndPathsTest {
@@ -39,20 +41,21 @@ public class ConfigLookupAndPathsTest {
 	public void testArrayAndListPaths() {
 		Config config = createConfig();
 		
-		Setting arraySetting = config.addArray("SOME_SETTINGS_ARRAY", Type.ARRAY);
-		Setting listSetting = config.addArray("SOME_SETTINGS_LIST", Type.LIST);
-		for (int i = 0; i < 10; i++) {
-			arraySetting.addSetting(i);
-			listSetting.addSetting(i);
-		}
+		Setting arraySetting = config.addArray("SOME_SETTINGS_ARRAY", 1, 2, 2, 3, 4, 6, 5, 6, 6);
+		Setting listSetting = config.addList("SOME_SETTINGS_LIST");
+		listSetting.addArray(1,2,3);
+
+		List<Setting> listSettings = config.lookup("SOME_SETTINGS_LIST").getValue();
+		Setting[] arraySettings = listSettings.get(0).getValue();
+		System.out.println(arraySettings[0].getPath());
 		
-		Setting arrayValueSetting = arraySetting.lookup(0);
+//		List<Integer> arraySettings = arraySetting.getValue();
+// 		
+//		Integer setting = arraySettings.get(0);
+//		System.out.println(setting.getType());
 		
 		assertEquals(arraySetting.getPath(), "SOME_SETTINGS_ARRAY");
 		assertEquals(listSetting.getPath(), "SOME_SETTINGS_LIST");
-		assertEquals(arrayValueSetting.getPath(), "SOME_SETTINGS_LIST");
-		
-		assertNotNull(arraySetting.lookup(0));
 	}
 	
 	
@@ -60,11 +63,10 @@ public class ConfigLookupAndPathsTest {
 		Config config = new Config();
 		config.addScalar("SOME_SETTINGS_1", true);
 
-		Setting setting = config.addSetting("SOME_SETTINGS_0", 1);
-		setting.addSetting("CHILD1", 1);
-		Setting child2Setting = setting.addSetting("CHILD2", 2);
-		child2Setting.addSetting("CHIL2_CHILD_1", "SomeValue1"); 
-		child2Setting.addSetting("CHIL2_CHILD_2", "SomeValue2");
+		Setting setting = config.addGroup("SOME_SETTINGS_0");
+		Setting child2Setting = setting.addGroup("CHILD2");
+		child2Setting.addScalar("CHIL2_CHILD_1", "SomeValue1"); 
+		child2Setting.addScalar("CHIL2_CHILD_2", "SomeValue2");
 
 		return config;
 	}

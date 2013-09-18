@@ -21,7 +21,7 @@ public class Setting {
 	
 	protected Config config;
 	
-	private Setting parent;
+	protected Setting parent;
 	
 	protected Object value;
 	
@@ -74,19 +74,18 @@ public class Setting {
 
 	public Setting lookup(String name) {
 		Setting found = null;
-//		for (Setting setting : settings) {
-//			if (name.equals(setting.getName())) {
-//				found = setting;
-//				break;
-//			}
-//		}
+		if (getName().equals(name)) {
+			found = this;
+		} else {
+			if (type == Type.LIST || type == Type.GROUP) {
+				List<Setting> settings = getValue();
+				for (Setting setting : settings) {
+					found = setting.lookup(name);
+					if (found != null) break;
+				}
+			}
+		}
 		return found; 
-	}
-	
-	public Setting lookup(int index) {
-		if (type != Type.LIST && type != Type.ARRAY)
-			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		return null;//settings.get(index);
 	}
 	
 	public String getPath() {
@@ -94,11 +93,7 @@ public class Setting {
 		Setting parentCursor = parent;
 		while (parentCursor != null) {
 			String tmp = path;
-//			if (parentCursor.getType() == Type.ARRAY || parentCursor.getType() == Type.GROUP) {
-//				path = ".[" + parentCursor.getSettings().values(). + "]" + tmp;
-//			} else {
-				path = parentCursor.getName() + "." + tmp;
-//			}
+			path = parentCursor.getName() + "." + tmp;
 			parentCursor = parentCursor.getParent();
 		}
 		return path;
@@ -163,36 +158,71 @@ public class Setting {
 	public Setting addArray(String name, String ... values) {
 		if (type != Type.GROUP && type != Type.LIST)
 			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		applay(name, Type.ARRAY, values);
+		Setting arraySetting = applaySetting(name, Type.ARRAY);
+		arraySetting.value = config.copyArrayValues(values, this);
 		return this;
 	}
 	
 	public Setting addArray(String name, Integer ... values) {
 		if (type != Type.GROUP && type != Type.LIST)
 			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		applay(name, Type.ARRAY, values);
+		Setting arraySetting = applaySetting(name, Type.ARRAY);
+		arraySetting.value = config.copyArrayValues(values, this);
 		return this;
 	}
 	
 	public Setting addArray(String name, Double ... values) {
 		if (type != Type.GROUP && type != Type.LIST)
 			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		applay(name, Type.ARRAY, values);
+		Setting arraySetting = applaySetting(name, Type.ARRAY);
+		arraySetting.value = config.copyArrayValues(values, this);
 		return this;
 	}
 	
 	public Setting addArray(String name, Boolean ... values) {
 		if (type != Type.GROUP && type != Type.LIST)
 			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		applay(name, Type.ARRAY, values);
+		Setting arraySetting = applaySetting(name, Type.ARRAY);
+		arraySetting.value = config.copyArrayValues(values, this);
+		return this;
+	}
+	
+	public Setting addArray(String ... values) {
+		if (type != Type.LIST)
+			throw new IllegalArgumentException("Such method does not applicable for type " + type);
+		Setting arraySetting = applaySetting(null, Type.ARRAY);
+		arraySetting.value = config.copyArrayValues(values, this);
+		return this;
+	}
+	
+	public Setting addArray(Integer ... values) {
+		if (type != Type.GROUP && type != Type.LIST)
+			throw new IllegalArgumentException("Such method does not applicable for type " + type);
+		Setting arraySetting = applaySetting(null, Type.ARRAY);
+		arraySetting.value = config.copyArrayValues(values, arraySetting);
+		return this;
+	}
+	
+	public Setting addArray(Double ... values) {
+		if (type != Type.GROUP && type != Type.LIST)
+			throw new IllegalArgumentException("Such method does not applicable for type " + type);
+		Setting arraySetting = applaySetting(null, Type.ARRAY);
+		arraySetting.value = config.copyArrayValues(values, arraySetting);
+		return this;
+	}
+	
+	public Setting addArray(Boolean ... values) {
+		if (type != Type.GROUP && type != Type.LIST)
+			throw new IllegalArgumentException("Such method does not applicable for type " + type);
+		Setting arraySetting = applaySetting(null, Type.ARRAY);
+		arraySetting.value = config.copyArrayValues(values, arraySetting);
 		return this;
 	}
 	
 	public Setting addList(String name) {
 		if (type != Type.GROUP && type != Type.LIST)
 			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		Setting listSetting = applaySetting(name, Type.LIST);
-		return listSetting;
+		return applaySetting(name, Type.LIST);
 	}
 	
 	public Setting addGroup(String name) {
@@ -206,73 +236,17 @@ public class Setting {
 	}
 	
 	private <T> void applay(String name, Type type, T value) {
-		@SuppressWarnings("unchecked")
-		List<Setting> settings = (List<Setting>) this.value;
-		settings.add(createSetting(name, type, value));
+		List<Setting> settings = getValue();
+		settings.add(config.createSetting(name, type, value, this));
 	}
 	
 	private <T> Setting applaySetting(String name, Type type) {
 		@SuppressWarnings("unchecked")
 		List<Setting> settings = (List<Setting>) this.value;
-		Setting setting = createSetting(name, type, new ArrayList<>());
+		Setting setting = config.createSetting(name, type, new ArrayList<>(), this);
 		settings.add(setting);
 		return setting;
 	}
-	
-//	public Setting addSetting(Type type) {
-//		if (type != Type.ARRAY && type != Type.GROUP && type != Type.LIST)
-//			throw new IllegalArgumentException("Unsupported group type " + type);
-//		if (getType() != Type.GROUP && getType() != Type.LIST)
-//			throw new IllegalArgumentException("Setting with type " + getType() + " does not support type " + type);
-//		return createSetting(name, type);
-//	}
-
-	public Setting addSetting(String name, String ... array) {
-		if (type != Type.ARRAY && type != Type.GROUP && type != Type.LIST)
-			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		applay(name, Type.ARRAY, array);
-		return this;
-	}
-//	
-//	public Setting addSetting(String name, int ... array) {
-//		if (getType() != Type.ARRAY)
-//			throw new IllegalArgumentException("Unsupported type " + type);
-//		Setting arraySetting = createSetting(name, Type.ARRAY);
-//		for (int value : array) arraySetting.addSetting(value);
-//		return arraySetting;
-//	}
-//	
-//	public Setting addSetting(String name, double ... array) {
-//		if (getType() != Type.ARRAY)
-//			throw new IllegalArgumentException("Unsupported type " + type);
-//		Setting arraySetting = createSetting(name, Type.ARRAY);
-//		for (double value : array) arraySetting.addSetting(value);
-//		return arraySetting;
-//	}
-//	
-//	public Setting addSetting(String name, boolean ... array) {
-//		if (getType() != Type.ARRAY)
-//			throw new IllegalArgumentException("Unsupported type " + type);
-//		Setting arraySetting = createSetting(name, Type.ARRAY);
-//		for (boolean value : array) arraySetting.addSetting(value);
-//		return arraySetting;
-//	}
-//	
-//	private Setting createSetting(String name, Type type) {
-//		return createSetting(name, type, null);
-//	}
-//	
-	private <T> Setting createSetting(String name, Type type, T value) {
-		Setting setting = new Setting(name, type);
-		setting.config = config;
-		setting.parent = this;
-		setting.value = value;
-		return setting;
-	}
-//	
-//	protected List<Setting> getSettings() {
-//		return settings;
-//	}
 	
 	@Override
 	public String toString() {

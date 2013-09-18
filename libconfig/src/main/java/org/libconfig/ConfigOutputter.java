@@ -173,13 +173,13 @@ public class ConfigOutputter {
 		printName(setting, writer);
 		writer.write(LBRACKET);
 		depth++;
-		Object[] values = setting.getValue();
+		Setting[] values = setting.getValue();
 		for (int i = 0; i < values.length; i++) {
 			if (i > 0) {
 				writer.write(COMMA);
 				writer.write(" ");
 			}
-			printValue(values[i], writer);
+			printSetting(values[i], writer);
 		}
 		writer.write(RBRACKET);
 		depth--;

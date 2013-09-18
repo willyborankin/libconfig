@@ -16,7 +16,7 @@ public class Config {
 
 	public Setting lookup(String name) { 
 		if (name == null) throw new IllegalArgumentException("Name for settings has not been set");
-		Setting found;
+		Setting found = null;
 		if (name.contains(".")) {
 			String[] names = name.split("\\.");
 			found = names.length != 0 ? lookup(names) : null;
@@ -53,19 +53,27 @@ public class Config {
 	}
 
 	public Setting addArray(String name, String ... values) {
-		return createSetting(name, Type.ARRAY, values);
+		Setting arraySetting = createSetting(name, Type.ARRAY);
+		arraySetting.value = copyArrayValues(values, null);
+		return arraySetting;
 	}
 	
 	public Setting addArray(String name, Integer ... values) {
-		return createSetting(name, Type.ARRAY, values);
+		Setting arraySetting = createSetting(name, Type.ARRAY);
+		arraySetting.value = copyArrayValues(values, null);
+		return arraySetting;
 	}
 
 	public Setting addArray(String name, Double ... values) {
-		return createSetting(name, Type.ARRAY, values);
+		Setting arraySetting = createSetting(name, Type.ARRAY);
+		arraySetting.value = copyArrayValues(values, null);
+		return arraySetting;
 	}
 
 	public Setting addArray(String name, Boolean ... values) {
-		return createSetting(name, Type.ARRAY, values);
+		Setting arraySetting = createSetting(name, Type.ARRAY);
+		arraySetting.value = copyArrayValues(values, null);
+		return arraySetting;
 	}
 
 	public Setting addList(String name) {
@@ -75,26 +83,52 @@ public class Config {
 	public Setting addGroup(String name) {
 		return createSetting(name, Type.GROUP, new ArrayList<>());
 	}
-	
-//	public Setting addSetting(String name, Type type) {
-//		if (type != Type.ARRAY && type != Type.GROUP && type != Type.LIST)
-//			throw new IllegalArgumentException("Unsupported group type " + type);
-//		return createSetting(name, type);
-//	}
-//	
-//	private Setting createSetting(String name, Type type) {
-//		return createSetting(name, type, null);
-//	}
+
+	private Setting createSetting(String name, Type type) {
+		return createSetting(name, type, null);
+	}
 	
 	private <T> Setting createSetting(String name, Type type, T value) {
-		Setting setting = new Setting(name, type);
-		setting.config = this;
-		setting.value = value;
-		setting.type = type;
+		Setting setting = createSetting(name, type, value, null);
 		settings.put(setting.getName(), setting);
 		return setting;
 	}
+	
+	protected <T> Setting createSetting(String name, Type type, T value, Setting parent) {
+		Setting setting = new Setting(name, type);
+		setting.config = this;
+		setting.type = type;
+		setting.value = value;
+		setting.parent = parent;
+		return setting;
+	}
 
+	protected <T> Setting[] copyArrayValues(T[] from, Setting parent) {
+		Setting[] settings = new Setting[from.length];
+		int i = 0;
+		for (T value : from) {
+			settings[i] = createSetting(null, resolveType(value.getClass()), value, parent);
+			i++;
+		}
+		return settings;
+	}
+	
+	protected static <T> Type resolveType(Class<T> value) {
+		Type type;
+		if (value.equals(String.class)) {
+			type = Type.STRING;
+		} else if (value.equals(Integer.class)) {
+			type = Type.INTEGER;
+		} else if (value.equals(Double.class)) {
+			type = Type.FLOAT;
+		} else if (value.equals(Boolean.class)) {
+			type = Type.BOOLEAN;
+		} else {
+			throw new IllegalArgumentException("Unsupported scalar type " + value);
+		}
+		return type;
+	}
+	
 	protected Map<String, Setting> getSettings() {
 		return settings;
 	}

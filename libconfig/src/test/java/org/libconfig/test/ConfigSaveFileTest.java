@@ -26,7 +26,7 @@ public class ConfigSaveFileTest {
 		groupSetting.addScalar("hh", 2.5d);
 		groupSetting.addScalar("ee", true);
 
-		groupSetting.addArray("INNER_GROUP_ARRAY_1", "a", "b", "c");
+		groupSetting.addArray("INNER_GROUP_ARRAY_1", new String[] { "a", "b", "c" });
 
 		Setting innerGroupInGroup = groupSetting.addGroup("INNER_GROUP_GROUP_1");
 		innerGroupInGroup.addScalar("jj", true);
