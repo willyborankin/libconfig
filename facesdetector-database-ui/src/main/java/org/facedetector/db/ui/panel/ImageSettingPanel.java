@@ -10,6 +10,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
+import javax.swing.ListSelectionModel;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
 import javax.swing.tree.TreePath;
@@ -20,6 +21,7 @@ import net.java.dev.designgridlayout.LabelAlignment;
 import org.facedetector.db.ui.Constants.Gender;
 import org.facedetector.db.ui.FaceDetectorFrame;
 import org.facedetector.db.ui.utils.JXErrorDialog;
+import org.libconfig.Setting;
 
 import com.jgoodies.forms.factories.Borders;
 
@@ -32,8 +34,14 @@ public class ImageSettingPanel extends JPanel implements TreeSelectionListener {
 	private final JLabel imgName;
 	
 	private final JLabel imgLabel;
+
+	private final JList<String> genderList;
+	
+	private final JList<String> agesList;
 	
 	private final FaceDetectorFrame detectorFrame;
+	
+	private Setting previousGroup;
 	
 	public ImageSettingPanel(FaceDetectorFrame detectorFrame) {
 		super();
@@ -45,13 +53,32 @@ public class ImageSettingPanel extends JPanel implements TreeSelectionListener {
 		imgLabel = new JLabel();
 		imgName = new JLabel();
 		
-		layout.row()
-			.grid(new JLabel(resourceBundle.getString("file.name.label")))
-			.add(imgName)
-			.add(imgLabel);
-		layout.row()
-			.grid(new JLabel(resourceBundle.getString("age.name.label")))
-			.add(new JList<String>(new String[]{
+		genderList = new JList<String>(new AbstractListModel<String>() {
+
+			private static final long serialVersionUID = 1L;
+
+			@Override
+			public int getSize() {
+				return Gender.ALL_GENDERS.length;
+			}
+
+			@Override
+			public String getElementAt(int index) {
+				String value = null;
+				switch (Gender.ALL_GENDERS[index]) {
+				case FEMALE:
+					value = resourceBundle.getString("gender.female.label");
+					break;
+				case MALE:
+					value = resourceBundle.getString("gender.male.label");
+					break;
+				}
+				return value;
+			}
+			
+		});
+		genderList.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		agesList = new JList<>(new String[] {
 				resourceBundle.getString("age.1217.label"),
 				resourceBundle.getString("age.1824.label"),
 				resourceBundle.getString("age.2534.label"),
@@ -59,34 +86,20 @@ public class ImageSettingPanel extends JPanel implements TreeSelectionListener {
 				resourceBundle.getString("age.4564.label"),
 				resourceBundle.getString("age.5565.label"),
 				resourceBundle.getString("age.65.label")
-			}))
+		});
+		agesList.getSelectionModel().setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		
+		layout.row()
+			.grid(new JLabel(resourceBundle.getString("file.name.label")))
+			.add(imgName)
+			.add(imgLabel);
+		layout.row()
+			.grid(new JLabel(resourceBundle.getString("age.name.label")))
+			.add(agesList)
 			.spanRow();
 		layout.row()
 			.grid(new JLabel(resourceBundle.getString("gender.name.label")))
-			.add(new JList<String>(new AbstractListModel<String>() {
-
-				private static final long serialVersionUID = 1L;
-
-				@Override
-				public int getSize() {
-					return Gender.ALL_GENDERS.length;
-				}
-
-				@Override
-				public String getElementAt(int index) {
-					String value = null;
-					switch (Gender.ALL_GENDERS[index]) {
-					case FEMALE:
-						value = resourceBundle.getString("gender.female.label");
-						break;
-					case MALE:
-						value = resourceBundle.getString("gender.male.label");
-						break;
-					}
-					return value;
-				}
-				
-			 }))
+			.add(genderList)
 			.spanRow();
 		layout.emptyRow();
 		layout.emptyRow();
@@ -99,6 +112,13 @@ public class ImageSettingPanel extends JPanel implements TreeSelectionListener {
 		if (treePath != null && treePath.getLastPathComponent() instanceof File) {
 			File file = (File) treePath.getLastPathComponent();
 			if (!file.isDirectory()) {
+				if (previousGroup == null) {
+					previousGroup = detectorFrame.getRootSetting().addGroup(file.getName());
+				} else {
+					previousGroup.addScalar("gender", genderList.getSelectedValue());
+					previousGroup.addScalar("age", agesList.getSelectedValue());
+					previousGroup = detectorFrame.getRootSetting().addGroup(file.getName());
+				}
 				imgName.setText(file.getName());
 				try {
 					BufferedImage image = ImageIO.read(file);

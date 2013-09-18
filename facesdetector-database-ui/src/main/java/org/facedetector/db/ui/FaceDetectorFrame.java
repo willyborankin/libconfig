@@ -7,6 +7,8 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.io.File;
+import java.io.IOException;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -26,6 +28,9 @@ import javax.swing.tree.TreeSelectionModel;
 import org.facedetector.db.ui.gradient.GradientPanelHolder;
 import org.facedetector.db.ui.panel.ImageSettingPanel;
 import org.jdesktop.swingx.treetable.FileSystemModel;
+import org.libconfig.Config;
+import org.libconfig.ConfigOutputter;
+import org.libconfig.Setting;
 
 import com.jgoodies.forms.factories.Borders;
 import com.jidesoft.dialog.JideOptionPane;
@@ -46,12 +51,16 @@ public class FaceDetectorFrame extends JFrame {
 	
 	private JTree fileListTree;
 	
+	private Config config;
+	
 	public FaceDetectorFrame() {
 		super(resourceBundle.getString("main.window.title"));
 		setDefaultCloseOperation(DO_NOTHING_ON_CLOSE);
 		setWindowSize();
 		setJMenuBar(createMenuBar());
 		setContentPane(createContentPane());
+		config = new Config();
+		config.addGroup("machineLearningRules");
 	}
 
 	public static ResourceBundle getResourceBundle() {
@@ -62,6 +71,10 @@ public class FaceDetectorFrame extends JFrame {
 		return fileListTree;
 	}
 
+	public Setting getRootSetting() {
+		return config.lookup("machineLearningRules");
+	}
+	
 	private void setWindowSize() {
 		GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
 		setMaximizedBounds(ge.getMaximumWindowBounds());
@@ -176,7 +189,13 @@ public class FaceDetectorFrame extends JFrame {
 						resourceBundle.getString("exit.dialog.title"),
 						JideOptionPane.YES_NO_OPTION);
 				if (confirmed == JideOptionPane.YES_OPTION) {
-					//TODO save data here
+					ConfigOutputter outputter = new ConfigOutputter();
+					try {
+						File file = (File) mainFrame.getFileListTree().getModel().getRoot();
+						outputter.output(mainFrame.getRootSetting().getConfig(), new File(file, "descriptor.conf"));
+					} catch (IOException e1) {
+						e1.printStackTrace();
+					}
 				}
 				mainFrame.setVisible(false);
 				mainFrame.dispose();
