@@ -14,6 +14,13 @@ public class Config {
 		settings = new LinkedHashMap<>();
 	}
 
+	public <T> T lookupValue(String name) { 
+		Setting setting = lookup(name);
+		T value = null;
+		if (setting != null) value = setting.getValue();
+		return value;
+	}
+	
 	public Setting lookup(String name) { 
 		if (name == null) throw new IllegalArgumentException("Name for settings has not been set");
 		Setting found = null;
