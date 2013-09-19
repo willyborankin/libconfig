@@ -164,13 +164,15 @@ public class ConfigParserTest {
 		assertEquals(setting.getType(), type);
 	}
 	
-//	@Test
+	@Test
 	public void testOpenFacesConfig() throws ParseException {
 		InputStream in = ConfigParserTest.class.getClassLoader().getResourceAsStream("opencv.conf");
 		ConfigParser configParser = new ConfigParser(in);
-		LOG.info("Start");
-		Config configuration = configParser.buildConfiguration();
-		LOG.info("Stop");
+		Config config = configParser.buildConfiguration();
+		
+		Setting rootSetting = config.lookup("faceDetectionConfig");
+		Setting dptSetting = rootSetting.lookup("dataProviderType");
+		System.err.println(rootSetting);
 	}
 	
 }
