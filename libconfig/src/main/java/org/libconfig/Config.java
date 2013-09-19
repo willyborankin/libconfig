@@ -36,41 +36,11 @@ public class Config {
 		return found;
 	}
 	
-	public Setting addScalar(String name, String value) {
-		return createSetting(name, Type.STRING, value);
-	}
-
-	public Setting addScalar(String name, Integer value) {
-		return createSetting(name, Type.INTEGER, value);
+	public <T> Setting addScalar(String name, T value) {
+		return createSetting(name, resolveType(value), value);
 	}
 	
-	public Setting addScalar(String name, Double value) {
-		return createSetting(name, Type.FLOAT, value);
-	}
-	
-	public Setting addScalar(String name, Boolean value) {
-		return createSetting(name, Type.BOOLEAN, value);
-	}
-
-	public Setting addArray(String name, String ... values) {
-		Setting arraySetting = createSetting(name, Type.ARRAY);
-		arraySetting.value = copyArrayValues(values, null);
-		return arraySetting;
-	}
-	
-	public Setting addArray(String name, Integer ... values) {
-		Setting arraySetting = createSetting(name, Type.ARRAY);
-		arraySetting.value = copyArrayValues(values, null);
-		return arraySetting;
-	}
-
-	public Setting addArray(String name, Double ... values) {
-		Setting arraySetting = createSetting(name, Type.ARRAY);
-		arraySetting.value = copyArrayValues(values, null);
-		return arraySetting;
-	}
-
-	public Setting addArray(String name, Boolean ... values) {
+	public <T> Setting addArray(String name, T[] values) {
 		Setting arraySetting = createSetting(name, Type.ARRAY);
 		arraySetting.value = copyArrayValues(values, null);
 		return arraySetting;
@@ -89,6 +59,8 @@ public class Config {
 	}
 	
 	private <T> Setting createSetting(String name, Type type, T value) {
+		if (settings.containsKey(name)) 
+			throw new IllegalArgumentException("Dublicate setting name " + name);
 		Setting setting = createSetting(name, type, value, null);
 		settings.put(setting.getName(), setting);
 		return setting;
@@ -105,26 +77,26 @@ public class Config {
 
 	protected <T> Setting[] copyArrayValues(T[] from, Setting parent) {
 		Setting[] settings = new Setting[from.length];
-		int i = 0;
-		for (T value : from) {
-			settings[i] = createSetting(null, resolveType(value.getClass()), value, parent);
-			i++;
+		for (int i = 0; i < from.length; i++) {
+			settings[i] = createSetting(null, resolveType(from[i]), from[i], parent);
 		}
 		return settings;
 	}
 	
-	protected static <T> Type resolveType(Class<T> value) {
-		Type type;
-		if (value.equals(String.class)) {
-			type = Type.STRING;
-		} else if (value.equals(Integer.class)) {
-			type = Type.INTEGER;
-		} else if (value.equals(Double.class)) {
-			type = Type.FLOAT;
-		} else if (value.equals(Boolean.class)) {
-			type = Type.BOOLEAN;
-		} else {
-			throw new IllegalArgumentException("Unsupported scalar type " + value);
+	public <T> Type resolveType(T value) {
+		Type type = Type.UNKNOWN;
+		if (value != null) {
+			if (value instanceof String) {
+				type = Type.STRING;
+			} else if (value instanceof Integer) {
+				type = Type.INTEGER;
+			} else if (value instanceof Double) {
+				type = Type.FLOAT;
+			} else if (value instanceof Boolean) {
+				type = Type.BOOLEAN;
+			} else {
+				throw new IllegalArgumentException("Unsupported scalar type " + value);
+			}
 		}
 		return type;
 	}

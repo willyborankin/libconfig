@@ -41,9 +41,9 @@ public class ConfigLookupAndPathsTest {
 	public void testArrayAndListPaths() {
 		Config config = createConfig();
 		
-		Setting arraySetting = config.addArray("SOME_SETTINGS_ARRAY", 1, 2, 2, 3, 4, 6, 5, 6, 6);
+		Setting arraySetting = config.addArray("SOME_SETTINGS_ARRAY", new Integer[] { 1, 2, 2, 3, 4, 6, 5, 6, 6 });
 		Setting listSetting = config.addList("SOME_SETTINGS_LIST");
-		listSetting.addArray(1,2,3);
+		listSetting.addArray(new Integer[] { 1, 2, 3 });
 
 		List<Setting> listSettings = config.lookup("SOME_SETTINGS_LIST").getValue();
 		Setting[] arraySettings = listSettings.get(0).getValue();

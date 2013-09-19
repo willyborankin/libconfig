@@ -39,13 +39,13 @@ public class ConfigSaveFileTest {
 		Setting innerListInGroup = innerGroupInGroup.addList("INNER_LIST_GROUP_1");
 		innerListInGroup.addScalar(1).addScalar(2).addScalar(3);
 
-		innerGroupInGroup.addArray("INNER_ARRAY_GROUP_1", 5, 6, 7, 8, 9, 10);
+		innerGroupInGroup.addArray("INNER_ARRAY_GROUP_1", new Integer[] { 5, 6, 7, 8, 9, 10 });
 
 		Setting listSetting = config.addList("SIMPLE_LIST");
 		for (int i = 1; i < 5; i++) {
 			listSetting.addScalar(i);
 		}
-		config.addArray("SIMPLE_ARRAY", 11, 12, 13, 14, 15, 16);
+		config.addArray("SIMPLE_ARRAY", new Integer[] { 11, 12, 13, 14, 15, 16 });
 
 //		File file = new File("11.cgf");
 		ConfigOutputter configOutputter = new ConfigOutputter();

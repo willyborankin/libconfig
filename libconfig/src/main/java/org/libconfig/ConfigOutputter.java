@@ -121,6 +121,7 @@ public class ConfigOutputter {
 			printString(setting, writer);
 			break;
 		case INTEGER:
+		case UNKNOWN:
 			printInt(setting, writer);
 			break;
 		case FLOAT:

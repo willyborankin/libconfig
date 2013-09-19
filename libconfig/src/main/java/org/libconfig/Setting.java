@@ -12,7 +12,8 @@ public class Setting {
 		BOOLEAN,
 		LIST,
 		ARRAY,
-		GROUP;
+		GROUP,
+		UNKNOWN;
 	};
 	
 	protected String name;
@@ -55,23 +56,6 @@ public class Setting {
 		return config;
 	}
 
-	@SuppressWarnings("unchecked")
-	public int getLength() {
-		int length;
-		switch (type) {
-		case ARRAY:
-			length = ((Object[]) value).length;
-			break;
-		case LIST:
-		case GROUP:
-			length = ((List<Setting>) value).size();
-			break;
-		default:
-			length = 0;
-		}
-		return length;
-	}
-
 	public Setting lookup(String name) {
 		Setting found = null;
 		if (getName().equals(name)) {
@@ -99,120 +83,30 @@ public class Setting {
 		return path;
 	}
 	
-	public Setting addScalar(String name, String value) {
+	public <T> Setting addScalar(String name, T value) {
 		if (type != Type.GROUP)
 			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		applay(name, Type.STRING, value);
+		applay(name, config.resolveType(value), value);
 		return this;
 	}
 	
-	public Setting addScalar(String name, Integer value) {
+	public <T> Setting addScalar(T value) {
+		if (type != Type.LIST)
+			throw new IllegalArgumentException("Such method does not applicable for type " + type);
+		applay(null, config.resolveType(value), value);
+		return this;
+	}
+	
+	public <T> Setting addArray(String name, T[] values) {
 		if (type != Type.GROUP)
 			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		applay(name, Type.INTEGER, value);
-		return this;
-	}
-	
-	public Setting addScalar(String name, Double value) {
-		if (type != Type.GROUP)
-			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		applay(name, Type.FLOAT, value);
-		return this;
-	}
-	
-	public Setting addScalar(String name, Boolean value) {
-		if (type != Type.GROUP && type != Type.LIST)
-			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		applay(name, Type.BOOLEAN, value);
-		return this;
-	}
-	
-	public Setting addScalar(String value) {
-		if (type != Type.LIST)
-			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		applay(null, Type.STRING, value);
-		return this;
-	}
-	
-	public Setting addScalar(Integer value) {
-		if (type != Type.LIST)
-			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		applay(null, Type.INTEGER, value);
-		return this;
-	}
-	
-	public Setting addScalar(Double value) {
-		if (type != Type.LIST)
-			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		applay(null, Type.FLOAT, value);
-		return this;
-	}
-	
-	public Setting addScalar(Boolean value) {
-		if (type != Type.LIST)
-			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		applay(null, Type.BOOLEAN, value);
-		return this;
-	}
-	
-	public Setting addArray(String name, String ... values) {
-		if (type != Type.GROUP && type != Type.LIST)
-			throw new IllegalArgumentException("Such method does not applicable for type " + type);
 		Setting arraySetting = applaySetting(name, Type.ARRAY);
 		arraySetting.value = config.copyArrayValues(values, this);
 		return this;
 	}
 	
-	public Setting addArray(String name, Integer ... values) {
-		if (type != Type.GROUP && type != Type.LIST)
-			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		Setting arraySetting = applaySetting(name, Type.ARRAY);
-		arraySetting.value = config.copyArrayValues(values, this);
-		return this;
-	}
-	
-	public Setting addArray(String name, Double ... values) {
-		if (type != Type.GROUP && type != Type.LIST)
-			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		Setting arraySetting = applaySetting(name, Type.ARRAY);
-		arraySetting.value = config.copyArrayValues(values, this);
-		return this;
-	}
-	
-	public Setting addArray(String name, Boolean ... values) {
-		if (type != Type.GROUP && type != Type.LIST)
-			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		Setting arraySetting = applaySetting(name, Type.ARRAY);
-		arraySetting.value = config.copyArrayValues(values, this);
-		return this;
-	}
-	
-	public Setting addArray(String ... values) {
+	public <T> Setting addArray(T[] values) {
 		if (type != Type.LIST)
-			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		Setting arraySetting = applaySetting(null, Type.ARRAY);
-		arraySetting.value = config.copyArrayValues(values, this);
-		return this;
-	}
-	
-	public Setting addArray(Integer ... values) {
-		if (type != Type.GROUP && type != Type.LIST)
-			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		Setting arraySetting = applaySetting(null, Type.ARRAY);
-		arraySetting.value = config.copyArrayValues(values, arraySetting);
-		return this;
-	}
-	
-	public Setting addArray(Double ... values) {
-		if (type != Type.GROUP && type != Type.LIST)
-			throw new IllegalArgumentException("Such method does not applicable for type " + type);
-		Setting arraySetting = applaySetting(null, Type.ARRAY);
-		arraySetting.value = config.copyArrayValues(values, arraySetting);
-		return this;
-	}
-	
-	public Setting addArray(Boolean ... values) {
-		if (type != Type.GROUP && type != Type.LIST)
 			throw new IllegalArgumentException("Such method does not applicable for type " + type);
 		Setting arraySetting = applaySetting(null, Type.ARRAY);
 		arraySetting.value = config.copyArrayValues(values, arraySetting);
@@ -237,12 +131,15 @@ public class Setting {
 	
 	private <T> void applay(String name, Type type, T value) {
 		List<Setting> settings = getValue();
+		if (settings.contains(name))
+			throw new IllegalArgumentException("Duplicate setting name " + name);
 		settings.add(config.createSetting(name, type, value, this));
 	}
 	
 	private <T> Setting applaySetting(String name, Type type) {
-		@SuppressWarnings("unchecked")
-		List<Setting> settings = (List<Setting>) this.value;
+		List<Setting> settings = getValue();
+		if (settings.contains(name))
+			throw new IllegalArgumentException("Duplicate setting name " + name);
 		Setting setting = config.createSetting(name, type, new ArrayList<>(), this);
 		settings.add(setting);
 		return setting;

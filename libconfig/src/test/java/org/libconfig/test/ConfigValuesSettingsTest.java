@@ -38,10 +38,10 @@ public class ConfigValuesSettingsTest {
 		
 		Config config = new Config();
 		
-		config.addArray("SOME_STR_ARRAY", "str1", "str2", "str3", "str4");
-		config.addArray("SOME_INT_ARRAY", 1);
-		config.addArray("SOME_FLOAT_ARRAY", 1.2d, 1.3d);
-		config.addArray("SOME_BOOL_ARRAY", true, false);
+		config.addArray("SOME_STR_ARRAY", new String[] { "str1", "str2", "str3", "str4" });
+		config.addArray("SOME_INT_ARRAY", new Integer[] { 1 });
+		config.addArray("SOME_FLOAT_ARRAY", new Double[] { 1.2d, 1.3d });
+		config.addArray("SOME_BOOL_ARRAY", new Boolean[] { true, false });
 		
 		assertEquals(config.lookup("SOME_STR_ARRAY").getType(), Type.ARRAY);
 		assertEquals(config.lookup("SOME_INT_ARRAY").getType(), Type.ARRAY);
@@ -77,8 +77,8 @@ public class ConfigValuesSettingsTest {
 		Config config = new Config();
 		
 		Setting listSetting = config.addList("SOME_LIST");
-		listSetting.addArray(true, false);
-		listSetting.addArray(new String[] {"a", "b"});
+		listSetting.addArray(new Boolean[] { true, false });
+		listSetting.addArray(new String[] { "a", "b" });
 		listSetting.addGroup().addScalar("gg", 1).addScalar("hh", 2);
 
 		assertEquals(listSetting.getType(), Type.LIST);
