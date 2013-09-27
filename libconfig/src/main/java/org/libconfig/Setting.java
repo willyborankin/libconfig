@@ -71,6 +71,13 @@ public class Setting {
 		}
 		return found; 
 	}
+
+	public <T> T lookupValue(String name) {
+		Setting found = lookup(name);
+		T value = null;
+		if (found != null) value = found.getValue();
+		return value;
+	}
 	
 	public String getPath() {
 		String path = getName();
@@ -88,6 +95,23 @@ public class Setting {
 			throw new IllegalArgumentException("Such method does not applicable for type " + type);
 		applay(name, config.resolveType(value), value);
 		return this;
+	}
+	
+	public boolean isSettingExists(String name) {
+		Setting setting = lookup(name);
+		return setting != null;
+	}
+	
+	public void removeScalar(String name) {
+		List<Setting> settings = getValue();
+		Setting found = null;
+		for (Setting setting : settings) {
+			if (setting.getName().equals(name)) {
+				found = setting;
+				break;
+			}
+		}
+		if (found != null) settings.remove(found);
 	}
 	
 	public <T> Setting addScalar(T value) {

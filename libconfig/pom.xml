@@ -49,7 +49,7 @@
 			<artifactId>logback-classic</artifactId>
 			<version>${logback.version}</version>
 		</dependency>
-
+            
 		<!-- Tests -->
 		<dependency>
 			<groupId>org.testng</groupId>
