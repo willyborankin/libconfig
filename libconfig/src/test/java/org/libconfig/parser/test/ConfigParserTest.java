@@ -12,13 +12,9 @@ import org.libconfig.Setting;
 import org.libconfig.Setting.Type;
 import org.libconfig.parser.ConfigParser;
 import org.libconfig.parser.ParseException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.testng.annotations.Test;
 
 public class ConfigParserTest {
-
-	private static Logger LOG = LoggerFactory.getLogger(ConfigParserTest.class);
 
 	@Test
 	public void testScalar() throws ParseException {
@@ -172,7 +168,9 @@ public class ConfigParserTest {
 		
 		Setting rootSetting = config.lookup("faceDetectionConfig");
 		Setting dptSetting = rootSetting.lookup("dataProviderType");
+		
 		System.err.println(rootSetting);
+		System.err.println(dptSetting);
 	}
 	
 }
